@@ -187,7 +187,7 @@ Envoie un message dans une conversation et le diffuse en temps réel (uniquement
 - Le statut « en ligne » est global (visible de tous), pas conversation par conversation.
 - `chat.db` est local ; en production sur Render/Railway, prévoir un disque persistant ou migrer vers une base hébergée si le stockage éphémère est un problème.
 - Le token JWT est stocké côté frontend dans `localStorage` pour simplifier le projet. Pour une vraie mise en production, un cookie `httpOnly` serait préférable (protection contre le vol de token via XSS).
-- La colonne `status` des messages (`sent` par défaut) existe déjà en base pour préparer un futur statut lu/délivré, mais n'est pas encore exploitée côté UI.
+- La colonne status des messages gère maintenant le cycle :  sent → delivered → read.
 
 ## Fonctionnalités optionnelles implémentées
 
@@ -196,10 +196,10 @@ Envoie un message dans une conversation et le diffuse en temps réel (uniquement
 - ✅ Indicateur de saisie ("... est en train d'écrire"), scoppé à la conversation ouverte
 - ✅ Statut en ligne / hors ligne
 - ✅ Statut lu/délivré (coches façon WhatsApp : ✓ envoyé, ✓✓ gris livré, ✓✓ vert lu)
-- ⬜ Déploiement Render/Railway (à faire selon l'environnement cible)
+- ⬜ Déploiement cloud (Render/Railway/Vercel)
 - ⬜ Groupes / conversations à plus de 2 personnes
 
 ## Gestion des erreurs
 
 - Le frontend affiche un bandeau d'erreur en cas d'échec réseau, d'échec API, ou de perte de connexion Socket.io, sans crasher l'interface.
-- Le backend valide les messages entrants (pseudo + contenu non vides) et répond avec des codes HTTP explicites (400, 500).
+- Le backend valide les messages entrants (contenu non vide) et récupère automatiquement l'identité de l'utilisateur depuis le JWT.
