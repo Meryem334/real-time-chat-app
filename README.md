@@ -1,8 +1,8 @@
-# Chat en Temps Réel
+# Real-Time Chat
 
-Application de chat en temps réel avec React (frontend), Node.js/Express/Socket.io (backend) et SQLite (persistance).
+Real-time chat application with React (frontend), Node.js/Express/Socket.io (backend), and SQLite (persistence).
 
-## Structure du projet
+## Project structure
 
 ```
 chat-app/
@@ -28,9 +28,9 @@ chat-app/
 └── frontend/
     ├── src/
     │   ├── components/
-    │   │   ├── ChatWindow.jsx        (conteneur : sidebar + conversation)
-    │   │   ├── UsersSidebar.jsx      (liste des utilisateurs + statut en ligne)
-    │   │   ├── ConversationView.jsx  (messages d'une conversation privée)
+    │   │   ├── ChatWindow.jsx        (container: sidebar + conversation)
+    │   │   ├── UsersSidebar.jsx      (user list + online status)
+    │   │   ├── ConversationView.jsx  (messages for a private conversation)
     │   │   ├── MessageList.jsx
     │   │   ├── MessageInput.jsx
     │   │   ├── Login.jsx
@@ -47,9 +47,9 @@ chat-app/
     └── .env.example
 ```
 
-## Prérequis
+## Prerequisites
 
-- Node.js 18+ et npm
+- Node.js 18+ and npm
 
 ## Installation
 
@@ -69,137 +69,137 @@ npm install
 cp .env.example .env
 ```
 
-## Lancer le projet
+## Running the project
 
-### Backend (port 4000 par défaut)
+### Backend (default port 4000)
 
 ```bash
 cd backend
-npm run dev   # avec nodemon, ou "npm start" en production
+npm run dev   # with nodemon, or "npm start" in production
 ```
 
-Le backend crée automatiquement `chat.db` (SQLite) au premier démarrage.
+The backend automatically creates `chat.db` (SQLite) on first startup.
 
-### Frontend (port 5173 par défaut)
+### Frontend (default port 5173)
 
 ```bash
 cd frontend
 npm run dev
 ```
 
-Ouvre ensuite `http://localhost:5173`.
+Then open `http://localhost:5173`.
 
-## Variables d'environnement
+## Environment variables
 
 ### backend/.env
 
-| Variable     | Description                          | Défaut                  |
-|--------------|---------------------------------------|--------------------------|
-| `PORT`       | Port du serveur Express               | `4000`                   |
-| `CLIENT_URL` | Origine autorisée pour CORS/Socket.io | `http://localhost:5173`  |
-| `JWT_SECRET` | Clé secrète pour signer les tokens JWT | *(à définir, obligatoire)* |
+| Variable     | Description                            | Default                  |
+|--------------|------------------------------------------|---------------------------|
+| `PORT`       | Express server port                     | `4000`                    |
+| `CLIENT_URL` | Allowed origin for CORS/Socket.io       | `http://localhost:5173`   |
+| `JWT_SECRET` | Secret key for signing JWT tokens       | *(must be set, required)* |
 
 ### frontend/.env
 
-| Variable          | Description                    | Défaut                          |
-|-------------------|---------------------------------|----------------------------------|
-| `VITE_API_URL`    | URL de base de l'API REST       | `http://localhost:4000/api`     |
-| `VITE_SOCKET_URL` | URL du serveur Socket.io        | `http://localhost:4000`         |
+| Variable          | Description                | Default                        |
+|-------------------|------------------------------|----------------------------------|
+| `VITE_API_URL`    | Base URL of the REST API    | `http://localhost:4000/api`     |
+| `VITE_SOCKET_URL` | Socket.io server URL        | `http://localhost:4000`         |
 
-## API REST
+## REST API
 
-### Authentification
+### Authentication
 
 #### `POST /api/auth/register`
-Crée un compte utilisateur.
+Creates a user account.
 
 ```json
-{ "email": "meryem@example.com", "username": "Meryem", "password": "motdepasse123" }
+{ "email": "meryem@example.com", "username": "Meryem", "password": "password123" }
 ```
-Retourne `{ token, user }`.
+Returns `{ token, user }`.
 
 #### `POST /api/auth/login`
-Connecte un utilisateur existant.
+Logs in an existing user.
 
 ```json
-{ "email": "meryem@example.com", "password": "motdepasse123" }
+{ "email": "meryem@example.com", "password": "password123" }
 ```
-Retourne `{ token, user }`.
+Returns `{ token, user }`.
 
 #### `GET /api/auth/me`
-Retourne l'utilisateur courant (nécessite le header `Authorization: Bearer <token>`).
+Returns the current user (requires the `Authorization: Bearer <token>` header).
 
-### Utilisateurs, conversations et messages (protégés par JWT)
+### Users, conversations, and messages (JWT-protected)
 
-Toutes les routes ci-dessous nécessitent le header `Authorization: Bearer <token>`.
+All routes below require the `Authorization: Bearer <token>` header.
 
 #### `GET /api/users`
-Retourne la liste des autres utilisateurs (pour choisir avec qui discuter).
+Returns the list of other users (to choose who to chat with).
 
 #### `GET /api/conversations`
-Retourne la liste des conversations de l'utilisateur courant, avec le dernier message pour affichage en aperçu.
+Returns the current user's conversations, including the last message for preview display.
 
 #### `POST /api/conversations`
-Crée une conversation privée avec un utilisateur, ou retourne l'existante si elle existe déjà.
+Creates a private conversation with a user, or returns the existing one if it already exists.
 
 ```json
-{ "userId": "id-de-l-autre-utilisateur" }
+{ "userId": "the-other-user-s-id" }
 ```
-Retourne `{ conversationId }`.
+Returns `{ conversationId }`.
 
 #### `GET /api/messages/:conversationId`
-Retourne l'historique des messages d'une conversation précise (403 si l'utilisateur n'en fait pas partie).
+Returns the message history for a specific conversation (403 if the user isn't part of it).
 
 #### `POST /api/messages`
-Envoie un message dans une conversation et le diffuse en temps réel (uniquement aux participants) via une room Socket.io.
+Sends a message in a conversation and broadcasts it in real time (only to participants) via a Socket.io room.
 
 ```json
-{ "conversationId": "id-de-la-conversation", "content": "Salut !" }
+{ "conversationId": "the-conversation-id", "content": "Hi!" }
 ```
 
-## Événements Socket.io
+## Socket.io events
 
-| Événement          | Sens              | Description                                 |
-|--------------------|-------------------|-----------------------------------------------|
-| *(handshake `auth.token`)* | client → serveur | JWT envoyé à la connexion pour authentifier le socket |
-| `join_conversation` | client → serveur | Rejoint la room de la conversation ouverte (vérifie que l'utilisateur en fait partie) |
-| `leave_conversation` | client → serveur | Quitte la room en changeant de conversation |
-| `new_message`       | serveur → client  | Diffusé uniquement aux membres de la room (`io.to(conversationId).emit(...)`) |
-| `message_status_update` | serveur → client | Envoyé à l'auteur des messages quand ils passent à `read` (destinataire ouvre la conversation) |
-| `online_users`      | serveur → client  | Liste des pseudos actuellement connectés (globale) |
-| `typing` / `stop_typing` | client → serveur | Indique que l'utilisateur tape, avec le `conversationId` concerné |
-| `user_typing` / `user_stop_typing` | serveur → client | Diffusé uniquement aux autres membres de la room |
+| Event                  | Direction         | Description                                                              |
+|-------------------------|--------------------|----------------------------------------------------------------------------|
+| *(handshake `auth.token`)* | client → server | JWT sent on connection to authenticate the socket                        |
+| `join_conversation`     | client → server    | Joins the room for the open conversation (checks the user belongs to it) |
+| `leave_conversation`    | client → server    | Leaves the room when switching conversations                             |
+| `new_message`           | server → client    | Broadcast only to room members (`io.to(conversationId).emit(...)`)       |
+| `message_status_update` | server → client    | Sent to the message author when messages turn to `read` (recipient opens the conversation) |
+| `online_users`          | server → client    | List of currently connected usernames (global)                           |
+| `typing` / `stop_typing`| client → server    | Signals the user is typing, with the relevant `conversationId`           |
+| `user_typing` / `user_stop_typing` | server → client | Broadcast only to the other members of the room                  |
 
-## Décisions de conception
+## Design decisions
 
-- **SQLite (`better-sqlite3`)** choisi pour sa simplicité de configuration (pas de serveur à part) et son API synchrone, adaptée à une petite app de chat.
-- **Authentification par email/mot de passe + JWT** : mots de passe hashés avec `bcryptjs`, token signé avec `jsonwebtoken` et valable 7 jours. Le token est vérifié à la fois sur les routes REST (middleware Express) et sur la connexion Socket.io (middleware `io.use`).
-- **Conversations privées (1-to-1)** : chaque paire d'utilisateurs a au plus une conversation, retrouvée grâce à une paire d'ids toujours ordonnée (`user1_id < user2_id`) pour éviter les doublons (A,B) / (B,A).
-- **Rooms Socket.io par conversation** : `POST /api/messages` diffuse via `io.to(conversationId).emit(...)`, donc seuls les participants ayant rejoint la room (`join_conversation`) reçoivent le message — plus de diffusion globale.
-- **Vérification systématique d'appartenance** : chaque accès à une conversation (REST `GET /api/messages/:conversationId`, `POST /api/messages`, et Socket.io `join_conversation`) vérifie que l'utilisateur courant est bien `user1_id` ou `user2_id` de la conversation, sinon 403/erreur socket.
-- **Statut lu/délivré** : chaque utilisateur rejoint une room personnelle `user:<id>` à la connexion. À l'envoi, le message est `delivered` si le destinataire a une connexion active, sinon `sent`. Quand le destinataire ouvre la conversation (`join_conversation`), ses messages non lus passent à `read` et l'auteur en est notifié via sa room personnelle (`message_status_update`), sans avoir besoin d'avoir la conversation ouverte lui-même.
-- **Le pseudo/l'identité vient toujours du token**, jamais du corps de la requête envoyée par le client.
-- **Architecture en couches** côté backend (routes / controllers / middleware / socket / db), avec une séparation claire entre `users`, `conversations`, `messages` et `sockets`.
+- **SQLite (`better-sqlite3`)** chosen for its simple setup (no separate server needed) and synchronous API, well suited to a small chat app.
+- **Email/password authentication + JWT**: passwords hashed with `bcryptjs`, token signed with `jsonwebtoken` and valid for 7 days. The token is verified both on REST routes (Express middleware) and on the Socket.io connection (`io.use` middleware).
+- **Private (1-to-1) conversations**: each pair of users has at most one conversation, found via an always-ordered id pair (`user1_id < user2_id`) to avoid duplicates (A,B) / (B,A).
+- **Socket.io rooms per conversation**: `POST /api/messages` broadcasts via `io.to(conversationId).emit(...)`, so only participants who've joined the room (`join_conversation`) receive the message — no more global broadcast.
+- **Systematic membership checks**: every access to a conversation (REST `GET /api/messages/:conversationId`, `POST /api/messages`, and Socket.io `join_conversation`) verifies the current user is actually `user1_id` or `user2_id` of the conversation, otherwise 403/socket error.
+- **Read/delivered status**: each user joins a personal room `user:<id>` on connection. On send, a message is `delivered` if the recipient has an active connection, otherwise `sent`. When the recipient opens the conversation (`join_conversation`), their unread messages turn to `read` and the author is notified via their personal room (`message_status_update`), even without having the conversation open themselves.
+- **Username/identity always comes from the token**, never from the request body sent by the client.
+- **Layered backend architecture** (routes / controllers / middleware / socket / db), with a clear separation between `users`, `conversations`, `messages`, and `sockets`.
 
-## Hypothèses
+## Assumptions
 
-- Conversations strictement privées à 2 personnes (pas de groupes multi-utilisateurs).
-- Le statut « en ligne » est global (visible de tous), pas conversation par conversation.
-- `chat.db` est local ; en production sur Render/Railway, prévoir un disque persistant ou migrer vers une base hébergée si le stockage éphémère est un problème.
-- Le token JWT est stocké côté frontend dans `localStorage` pour simplifier le projet. Pour une vraie mise en production, un cookie `httpOnly` serait préférable (protection contre le vol de token via XSS).
-- La colonne status des messages gère maintenant le cycle :  sent → delivered → read.
+- Conversations are strictly private, 1-to-1 (no multi-user groups).
+- "Online" status is global (visible to everyone), not per-conversation.
+- `chat.db` is local; in production on Render/Railway, plan for a persistent disk or migrate to a hosted database if ephemeral storage is a problem.
+- The JWT token is stored on the frontend in `localStorage` to keep the project simple. For a real production deployment, an `httpOnly` cookie would be preferable (protection against token theft via XSS).
+- The `status` column on messages now follows the cycle: `sent` → `delivered` → `read`.
 
-## Fonctionnalités optionnelles implémentées
+## Optional features implemented
 
-- ✅ Comptes utilisateurs (email + mot de passe, JWT)
-- ✅ Conversations privées (Direct Messages)
-- ✅ Indicateur de saisie ("... est en train d'écrire"), scoppé à la conversation ouverte
-- ✅ Statut en ligne / hors ligne
-- ✅ Statut lu/délivré (coches façon WhatsApp : ✓ envoyé, ✓✓ gris livré, ✓✓ vert lu)
-- ⬜ Déploiement cloud (Render/Railway/Vercel)
-- ⬜ Groupes / conversations à plus de 2 personnes
+- ✅ User accounts (email + password, JWT)
+- ✅ Private conversations (Direct Messages)
+- ✅ Typing indicator ("... is typing"), scoped to the open conversation
+- ✅ Online/offline status
+- ✅ Read/delivered status (WhatsApp-style checkmarks: ✓ sent, ✓✓ gray delivered, ✓✓ green read)
+- ⬜ Cloud deployment (Render/Railway/Vercel)
+- ⬜ Groups / conversations with more than 2 people
 
-## Gestion des erreurs
+## Error handling
 
-- Le frontend affiche un bandeau d'erreur en cas d'échec réseau, d'échec API, ou de perte de connexion Socket.io, sans crasher l'interface.
-- Le backend valide les messages entrants (contenu non vide) et récupère automatiquement l'identité de l'utilisateur depuis le JWT.
+- The frontend shows an error banner on network failure, API failure, or Socket.io disconnection, without crashing the interface.
+- The backend validates incoming messages (non-empty content) and automatically derives the user's identity from the JWT.
